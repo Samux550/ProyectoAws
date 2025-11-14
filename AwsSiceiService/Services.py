@@ -3,9 +3,8 @@ from flask import Flask,jsonify,request
 app = Flask(__name__)
 
 alumnos=[]
-contador_alumnos_id = 1
 profesores = []
-contador_profesor_id = 1
+
 
 ##creacion de endpoints
 
@@ -26,7 +25,6 @@ def get_alumnos_by_id(id):
 ##POST/alumnos
 @app.route('/alumnos', methods=['POST'])
 def crear_alumno():
-    global contador_alumnos_id
     
     data = request.get_json()
 
@@ -36,7 +34,7 @@ def crear_alumno():
         return error
     # Crear el nuevo alumno
     nuevo_alumno = {
-        "id": contador_alumnos_id,
+        "id": data["id"],
         "nombres": data["nombres"],
         "apellidos": data["apellidos"],
         "matricula": data["matricula"],
@@ -45,7 +43,7 @@ def crear_alumno():
 
     # Agregar al arreglo
     alumnos.append(nuevo_alumno)
-    contador_alumnos_id += 1
+    
 
     # Respuesta de éxito
     return jsonify(nuevo_alumno), 201
@@ -123,7 +121,6 @@ def get_profesor_by_id(id):
 # POST /profesores
 @app.route('/profesores', methods=['POST'])
 def crear_profesor():
-    global contador_profesor_id
 
     data = request.get_json()
     if not data:
@@ -136,7 +133,7 @@ def crear_profesor():
 
     # Crear el nuevo profesor
     nuevo_profesor = {
-        "id": contador_profesor_id,
+        "id": data["id"],
         "numeroEmpleado": data["numeroEmpleado"],
         "nombres": data["nombres"],
         "apellidos": data["apellidos"],
@@ -144,7 +141,7 @@ def crear_profesor():
     }
 
     profesores.append(nuevo_profesor)
-    contador_profesor_id += 1
+    
 
     return jsonify(nuevo_profesor), 201
 
@@ -205,5 +202,4 @@ def validar_datos_profesor(data):
     return None
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    app.run(host='0.0.0.0', port=80, debug=True)
