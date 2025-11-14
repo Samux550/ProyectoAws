@@ -1,38 +1,39 @@
-from flask import Flask,jsonify,request
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-alumnos=[]
+alumnos = []
 profesores = []
 
 
-##creacion de endpoints
+# =====================================================
+# ALUMNOS
+# =====================================================
 
-##GET/alumnos
-@app.route('/alumnos',methods=['GET'])
+@app.route('/alumnos', methods=['GET'])
 def get_alumnos():
-    return alumnos,200
+    return jsonify(alumnos), 200
 
-##GET/alumnos/id
+
 @app.route('/alumnos/<int:id>', methods=['GET'])
 def get_alumnos_by_id(id):
-    ##buscar por la id del alumno
     for alumno in alumnos:
         if alumno["id"] == id:
             return jsonify(alumno), 200
     return jsonify({"error": "Alumno no encontrado"}), 404
 
-##POST/alumnos
+
 @app.route('/alumnos', methods=['POST'])
 def crear_alumno():
-    
-    data = request.get_json()
 
-    #Validacion de datos
-    error = validar_datos(data)
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Cuerpo vacío o formato inválido"}), 400
+
+    error = validar_datos_alumno(data)
     if error:
         return error
-    # Crear el nuevo alumno
+
     nuevo_alumno = {
         "id": data["id"],
         "nombres": data["nombres"],
@@ -41,42 +42,33 @@ def crear_alumno():
         "promedio": data["promedio"]
     }
 
-    # Agregar al arreglo
     alumnos.append(nuevo_alumno)
-    
 
-    # Respuesta de éxito
     return jsonify(nuevo_alumno), 201
 
-##PUT/alumnos
+
 @app.route('/alumnos/<int:id>', methods=['PUT'])
 def modificar_alumno(id):
-    # Obtener JSON del body
+
     data = request.get_json()
     if not data:
         return jsonify({"error": "Cuerpo de la solicitud vacío o no es JSON"}), 400
 
-    # Validar los datos usando la función validar_datos
-    resultado_validacion = validar_datos(data)
-    if resultado_validacion is not None:
-        # validar_datos puede devolver (json_response, status) o directamente (json_response, status)
-        # Si tu validar_datos ya devuelve jsonify(...),status entonces lo retornamos tal cual
-        return resultado_validacion
+    error = validar_datos_alumno(data)
+    if error:
+        return error
 
-    # Buscar el alumno por id y actualizar sus campos
     for alumno in alumnos:
         if alumno["id"] == id:
-            # Aquí asumimos que el PUT reemplaza/actualiza todos los campos esperados
             alumno["nombres"] = data["nombres"]
             alumno["apellidos"] = data["apellidos"]
             alumno["matricula"] = data["matricula"]
             alumno["promedio"] = data["promedio"]
             return jsonify(alumno), 200
 
-    # Si no se encontró el alumno
     return jsonify({"error": "Alumno no encontrado"}), 404
 
-#DELETE/alumnos
+
 @app.route('/alumnos/<int:id>', methods=['DELETE'])
 def eliminar_alumno(id):
     for alumno in alumnos:
@@ -86,30 +78,39 @@ def eliminar_alumno(id):
 
     return jsonify({"error": "Alumno no encontrado"}), 404
 
-def validar_datos(data):
-    
-    # Validar que todos los campos existan
-    campos_requeridos = ["nombres", "apellidos", "matricula", "promedio"]
-    for campo in campos_requeridos:
-        if campo not in data or data[campo] == "":
-            return jsonify({"error": f"El campo '{campo}' es obligatorio"}), 400
 
-    # Validar tipos básicos
+def validar_datos_alumno(data):
+
+    campos = ["id", "nombres", "apellidos", "matricula", "promedio"]
+
+    for c in campos:
+        if c not in data or data[c] is None or data[c] == "":
+            return jsonify({"error": f"El campo '{c}' es obligatorio"}), 400
+
+    if not isinstance(data["id"], int):
+        return jsonify({"error": "El campo 'id' debe ser numérico"}), 400
+
     if not isinstance(data["nombres"], str) or not isinstance(data["apellidos"], str) or not isinstance(data["matricula"], str):
         return jsonify({"error": "Los campos 'nombres', 'apellidos' y 'matricula' deben ser texto"}), 400
 
     if not isinstance(data["promedio"], (int, float)):
         return jsonify({"error": "El campo 'promedio' debe ser numérico"}), 400
-    
+
+    if data["promedio"] < 0:
+        return jsonify({"error": "El campo 'promedio' debe ser positivo"}), 400
+
     return None
 
-# GET /profesores
+
+# =====================================================
+# PROFESORES
+# =====================================================
+
 @app.route('/profesores', methods=['GET'])
 def get_profesores():
     return jsonify(profesores), 200
 
 
-# GET /profesores/<id>
 @app.route('/profesores/<int:id>', methods=['GET'])
 def get_profesor_by_id(id):
     for profesor in profesores:
@@ -118,7 +119,6 @@ def get_profesor_by_id(id):
     return jsonify({"error": "Profesor no encontrado"}), 404
 
 
-# POST /profesores
 @app.route('/profesores', methods=['POST'])
 def crear_profesor():
 
@@ -126,12 +126,10 @@ def crear_profesor():
     if not data:
         return jsonify({"error": "Cuerpo vacío o formato inválido"}), 400
 
-    # Validar datos
     error = validar_datos_profesor(data)
     if error:
         return error
 
-    # Crear el nuevo profesor
     nuevo_profesor = {
         "id": data["id"],
         "numeroEmpleado": data["numeroEmpleado"],
@@ -141,24 +139,21 @@ def crear_profesor():
     }
 
     profesores.append(nuevo_profesor)
-    
 
     return jsonify(nuevo_profesor), 201
 
 
-# PUT /profesores/<id>
 @app.route('/profesores/<int:id>', methods=['PUT'])
 def modificar_profesor(id):
+
     data = request.get_json()
     if not data:
         return jsonify({"error": "Cuerpo de la solicitud vacío o no es JSON"}), 400
 
-    # Validar los datos
-    resultado_validacion = validar_datos_profesor(data)
-    if resultado_validacion is not None:
-        return resultado_validacion
+    error = validar_datos_profesor(data)
+    if error:
+        return error
 
-    # Buscar y actualizar profesor
     for profesor in profesores:
         if profesor["id"] == id:
             profesor["numeroEmpleado"] = data["numeroEmpleado"]
@@ -170,7 +165,6 @@ def modificar_profesor(id):
     return jsonify({"error": "Profesor no encontrado"}), 404
 
 
-# DELETE /profesores/<id>
 @app.route('/profesores/<int:id>', methods=['DELETE'])
 def eliminar_profesor(id):
     for profesor in profesores:
@@ -181,26 +175,37 @@ def eliminar_profesor(id):
     return jsonify({"error": "Profesor no encontrado"}), 404
 
 
-# Validación para profesores
 def validar_datos_profesor(data):
 
-    campos_requeridos = ["numeroEmpleado", "nombres", "apellidos", "horasClase"]
+    campos = ["id", "numeroEmpleado", "nombres", "apellidos", "horasClase"]
 
-    for campo in campos_requeridos:
-        if campo not in data or data[campo] == "" or data[campo] is None:
-            return jsonify({"error": f"El campo '{campo}' es obligatorio"}), 400
+    for c in campos:
+        if c not in data or data[c] is None or data[c] == "":
+            return jsonify({"error": f"El campo '{c}' es obligatorio"}), 400
 
-    if not isinstance(data["numeroEmpleado"], str):
-        return jsonify({"error": "El campo 'numeroEmpleado' debe ser texto"}), 400
+    if not isinstance(data["id"], int):
+        return jsonify({"error": "El campo 'id' debe ser numérico"}), 400
+
+    # Aceptar numeroEmpleado como texto o número
+    if not isinstance(data["numeroEmpleado"], (str, int, float)):
+        return jsonify({"error": "El campo 'numeroEmpleado' debe ser texto o numérico"}), 400
 
     if not isinstance(data["nombres"], str) or not isinstance(data["apellidos"], str):
         return jsonify({"error": "Los campos 'nombres' y 'apellidos' deben ser texto"}), 400
 
-    if not isinstance(data["horasClase"], int) or data["horasClase"] < 0:
-        return jsonify({"error": "El campo 'horasClase' debe ser un número entero positivo"}), 400
+    # Aceptar horasClase como entero o float (test usa double)
+    if not isinstance(data["horasClase"], (int, float)):
+        return jsonify({"error": "El campo 'horasClase' debe ser numérico"}), 400
+
+    if data["horasClase"] < 0:
+        return jsonify({"error": "El campo 'horasClase' debe ser positivo"}), 400
 
     return None
 
+
+# =====================================================
+# RUN
+# =====================================================
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
