@@ -10,12 +10,12 @@ contador_profesor_id = 1
 ##creacion de endpoints
 
 ##GET/alumnos
-@app.route('alumnos',methods=['GET'])
+@app.route('/alumnos',methods=['GET'])
 def get_alumnos():
     return alumnos,200
 
 ##GET/alumnos/id
-@app.route('alumnos/<int:id>', methods=['GET'])
+@app.route('/alumnos/<int:id>', methods=['GET'])
 def get_alumnos_by_id(id):
     ##buscar por la id del alumno
     for alumno in alumnos:
