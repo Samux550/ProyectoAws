@@ -1,7 +1,7 @@
 import os
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///dev.db")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -11,3 +11,4 @@ class Config:
     S3_BUCKET = os.environ.get("S3_BUCKET")
     SNS_TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN")
     DYNAMO_TABLE = os.environ.get("DYNAMO_TABLE", "sesiones-alumnos")
+
